@@ -4,7 +4,9 @@ import (
 	"testing"
 
 	"github.com/gin-gonic/gin"
+	"github.com/iruiz/gin-blog-api/internal/metrics"
 	"github.com/iruiz/gin-blog-api/internal/models"
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/stretchr/testify/require"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
@@ -33,8 +35,9 @@ func setupTestRouter(db *gorm.DB) *gin.Engine {
 	r := gin.New()
 	r.Use(gin.Recovery())
 
-	postHandler := NewPostHandler(db)
-	commentHandler := NewCommentHandler(db)
+	observability := metrics.NewMetrics(prometheus.NewRegistry())
+	postHandler := NewPostHandler(db, observability)
+	commentHandler := NewCommentHandler(db, observability)
 
 	v1 := r.Group("/api/v1")
 	{
