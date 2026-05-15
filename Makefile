@@ -8,6 +8,7 @@ help:
 	@echo "  make run     - Arranca la API"
 	@echo "  make build   - Compila el binario en ./bin/blog-api"
 	@echo "  make test    - Ejecuta tests"
+	@echo "  make lint    - Ejecuta golangci-lint"
 	@echo "  make tidy    - Sincroniza dependencias del módulo"
 
 .PHONY: run
@@ -22,6 +23,10 @@ build:
 .PHONY: test
 test:
 	$(GO) test ./...
+
+.PHONY: lint
+lint:
+	./scripts/lint.sh
 
 .PHONY: tidy
 tidy:
