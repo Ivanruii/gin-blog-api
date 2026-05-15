@@ -5,17 +5,19 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/iruiz/gin-blog-api/internal/metrics"
 	"github.com/iruiz/gin-blog-api/internal/middleware"
 	"github.com/iruiz/gin-blog-api/internal/models"
 	"gorm.io/gorm"
 )
 
 type CommentHandler struct {
-	db *gorm.DB
+	db      *gorm.DB
+	metrics *metrics.Metrics
 }
 
-func NewCommentHandler(db *gorm.DB) *CommentHandler {
-	return &CommentHandler{db: db}
+func NewCommentHandler(db *gorm.DB, observability *metrics.Metrics) *CommentHandler {
+	return &CommentHandler{db: db, metrics: observability}
 }
 
 func (h *CommentHandler) ListByPost(c *gin.Context) {
@@ -77,6 +79,8 @@ func (h *CommentHandler) CreateForPost(c *gin.Context) {
 		middleware.RespondError(c, http.StatusInternalServerError, "failed to create comment")
 		return
 	}
+
+	h.metrics.Business.CommentsCreatedTotal.Inc()
 
 	c.JSON(http.StatusCreated, comment)
 }

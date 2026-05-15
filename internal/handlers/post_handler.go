@@ -6,17 +6,19 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"github.com/iruiz/gin-blog-api/internal/metrics"
 	"github.com/iruiz/gin-blog-api/internal/middleware"
 	"github.com/iruiz/gin-blog-api/internal/models"
 	"gorm.io/gorm"
 )
 
 type PostHandler struct {
-	db *gorm.DB
+	db      *gorm.DB
+	metrics *metrics.Metrics
 }
 
-func NewPostHandler(db *gorm.DB) *PostHandler {
-	return &PostHandler{db: db}
+func NewPostHandler(db *gorm.DB, observability *metrics.Metrics) *PostHandler {
+	return &PostHandler{db: db, metrics: observability}
 }
 
 type PaginatedResponse struct {
@@ -110,6 +112,11 @@ func (h *PostHandler) Create(c *gin.Context) {
 		return
 	}
 
+	h.metrics.Business.PostsCreatedTotal.Inc()
+	if post.Published {
+		h.metrics.Business.PostsPublishedTotal.Inc()
+	}
+
 	c.JSON(http.StatusCreated, post)
 }
 
@@ -139,11 +146,16 @@ func (h *PostHandler) Update(c *gin.Context) {
 	post.Title = input.Title
 	post.Content = input.Content
 	post.Author = input.Author
+	wasPublished := post.Published
 	post.Published = input.Published
 
 	if err := h.db.Save(&post).Error; err != nil {
 		middleware.RespondError(c, http.StatusInternalServerError, "failed to update post")
 		return
+	}
+
+	if !wasPublished && post.Published {
+		h.metrics.Business.PostsPublishedTotal.Inc()
 	}
 
 	c.JSON(http.StatusOK, post)
@@ -166,10 +178,15 @@ func (h *PostHandler) Publish(c *gin.Context) {
 		return
 	}
 
+	wasPublished := post.Published
 	post.Published = true
 	if err := h.db.Save(&post).Error; err != nil {
 		middleware.RespondError(c, http.StatusInternalServerError, "failed to publish post")
 		return
+	}
+
+	if !wasPublished {
+		h.metrics.Business.PostsPublishedTotal.Inc()
 	}
 
 	c.JSON(http.StatusOK, post)
@@ -196,6 +213,8 @@ func (h *PostHandler) Delete(c *gin.Context) {
 		middleware.RespondError(c, http.StatusInternalServerError, "failed to delete post")
 		return
 	}
+
+	h.metrics.Business.PostsDeletedTotal.Inc()
 
 	c.Status(http.StatusNoContent)
 }
