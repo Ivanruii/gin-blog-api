@@ -3,9 +3,10 @@ package routes
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/iruiz/gin-blog-api/internal/handlers"
+	"gorm.io/gorm"
 )
 
-func Setup() *gin.Engine {
+func Setup(_ *gorm.DB) *gin.Engine {
 	r := gin.New()
 	r.Use(gin.Recovery())
 
