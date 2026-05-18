@@ -11,6 +11,9 @@ help:
 	@echo "  make coverage - Ejecuta tests con coverage y genera HTML"
 	@echo "  make lint    - Ejecuta golangci-lint"
 	@echo "  make vuln    - Ejecuta govulncheck"
+	@echo "  make docker-build - Construye imagen Docker"
+	@echo "  make docker-run - Levanta API + Prometheus"
+	@echo "  make docker-stop - Detiene stack de Docker Compose"
 	@echo "  make tidy    - Sincroniza dependencias del módulo"
 
 .PHONY: run
@@ -34,12 +37,24 @@ coverage:
 
 .PHONY: lint
 lint:
-	./scripts/lint.sh
+	GOTOOLCHAIN=auto $(GO) run github.com/golangci/golangci-lint/cmd/golangci-lint@v1.64.8 run ./...
 
 .PHONY: vuln
 vuln:
 	@which govulncheck >/dev/null 2>&1 || $(GO) install golang.org/x/vuln/cmd/govulncheck@latest
 	govulncheck ./...
+
+.PHONY: docker-build
+docker-build:
+	docker build -f deployments/Dockerfile -t gin-blog-api:latest .
+
+.PHONY: docker-run
+docker-run:
+	docker compose -f deployments/docker-compose.yml up --build
+
+.PHONY: docker-stop
+docker-stop:
+	docker compose -f deployments/docker-compose.yml down -v
 
 .PHONY: tidy
 tidy:

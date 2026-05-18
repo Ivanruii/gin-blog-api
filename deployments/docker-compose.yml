@@ -1,0 +1,51 @@
+services:
+  api:
+    build:
+      context: ..
+      dockerfile: deployments/Dockerfile
+    container_name: blog-api
+    ports:
+      - "8080:8080"
+    environment:
+      - GIN_MODE=release
+      - PORT=8080
+      - DB_PATH=/app/data/blog.db
+      - APP_VERSION=docker-local
+    volumes:
+      - api-data:/app/data
+    networks:
+      - blog-net
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8080/api/v1/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+
+  prometheus:
+    image: prom/prometheus:v2.54.1
+    container_name: blog-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    networks:
+      - blog-net
+    depends_on:
+      - api
+    restart: unless-stopped
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--web.console.libraries=/usr/share/prometheus/console_libraries"
+      - "--web.console.templates=/usr/share/prometheus/consoles"
+
+networks:
+  blog-net:
+    driver: bridge
+
+volumes:
+  api-data:
+  prometheus-data:
