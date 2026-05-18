@@ -17,11 +17,11 @@ jobs:
         with:
           go-version: "1.25"
 
+      - name: Download dependencies
+        run: go mod download
+
       - name: Run golangci-lint
-        uses: golangci/golangci-lint-action@v6
-        with:
-          version: latest
-          args: --timeout=5m
+        run: GOTOOLCHAIN=auto go run github.com/golangci/golangci-lint@latest run ./...
 
   test:
     name: Tests
