@@ -20,8 +20,11 @@ jobs:
       - name: Download dependencies
         run: go mod download
 
+      - name: Install golangci-lint
+        run: GOTOOLCHAIN=auto go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+
       - name: Run golangci-lint
-        run: GOTOOLCHAIN=auto go run github.com/golangci/golangci-lint@latest run ./...
+        run: golangci-lint run ./...
 
   test:
     name: Tests
