@@ -46,3 +46,5 @@ Endpoint: `GET /metrics`
 - `comments_total`
 - `db_query_duration_seconds`
 - `db_errors_total`
+
+Prometheus (contenedor `blog-prometheus`) scrapea este endpoint internamente contra `api:8080/metrics`.
