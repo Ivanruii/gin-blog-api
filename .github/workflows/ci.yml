@@ -26,6 +26,10 @@ on:
 env:
   GO_VERSION: ${{ github.event.inputs.go_version || '1.25' }}
   TEST_RACE: ${{ github.event.inputs.test_race || 'true' }}
+  schedule:
+    - cron: "0 3 * * 1"
+  repository_dispatch:
+    types: [ci-custom-trigger]
 
 jobs:
   lint:
