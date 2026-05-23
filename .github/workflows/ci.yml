@@ -5,6 +5,27 @@ on:
     branches: [develop, main]
   pull_request:
     branches: [develop, main]
+  workflow_dispatch:
+    inputs:
+      go_version:
+        description: "Versión de Go a utilizar"
+        required: false
+        default: "1.25"
+        type: string
+      test_race:
+        description: "Ejecutar tests con -race"
+        required: false
+        default: true
+        type: boolean
+      run_vuln:
+        description: "Ejecutar chequeo de vulnerabilidades"
+        required: false
+        default: true
+        type: boolean
+
+env:
+  GO_VERSION: ${{ github.event.inputs.go_version || '1.25' }}
+  TEST_RACE: ${{ github.event.inputs.test_race || 'true' }}
 
 jobs:
   lint:
@@ -15,7 +36,7 @@ jobs:
 
       - uses: actions/setup-go@v5
         with:
-          go-version: "1.25"
+          go-version: ${{ env.GO_VERSION }}
 
       - name: Download dependencies
         run: go mod download
@@ -34,13 +55,18 @@ jobs:
 
       - uses: actions/setup-go@v5
         with:
-          go-version: "1.25"
+          go-version: ${{ env.GO_VERSION }}
 
       - name: Download dependencies
         run: go mod download
 
       - name: Run tests
-        run: go test -v -race -coverprofile=coverage.out ./...
+        run: |
+          if [ "${TEST_RACE}" = "true" ]; then
+            go test -v -race -coverprofile=coverage.out ./...
+          else
+            go test -v -coverprofile=coverage.out ./...
+          fi
 
       - name: Upload coverage
         uses: codecov/codecov-action@v4
@@ -53,12 +79,13 @@ jobs:
   vuln:
     name: Vulnerability Check
     runs-on: ubuntu-latest
+    if: ${{ github.event_name != 'workflow_dispatch' || github.event.inputs.run_vuln != 'false' }}
     steps:
       - uses: actions/checkout@v4
 
       - uses: actions/setup-go@v5
         with:
-          go-version: "1.25"
+          go-version: ${{ env.GO_VERSION }}
 
       - name: Download dependencies
         run: go mod download
@@ -69,13 +96,13 @@ jobs:
   build:
     name: Build
     runs-on: ubuntu-latest
-    needs: [lint, test, vuln]
+    needs: [lint, test]
     steps:
       - uses: actions/checkout@v4
 
       - uses: actions/setup-go@v5
         with:
-          go-version: "1.25"
+          go-version: ${{ env.GO_VERSION }}
 
       - name: Download dependencies
         run: go mod download
