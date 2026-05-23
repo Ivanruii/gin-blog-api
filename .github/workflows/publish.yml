@@ -10,6 +10,7 @@ jobs:
   publish-images:
     name: Publish Docker images
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push' && github.event.workflow_run.head_branch == 'main'
     strategy:
       fail-fast: false
@@ -46,6 +47,36 @@ jobs:
             tags="${tags},${image_repo}:${{ matrix.variant }}-latest"
           fi
           echo "tags=${tags}" >> "$GITHUB_OUTPUT"
+
+      - name: Build image for ClamAV scan
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ${{ matrix.dockerfile }}
+          load: true
+          push: false
+          tags: gin-blog-api-scan:${{ matrix.variant }}
+
+      - name: Install ClamAV
+        run: sudo apt-get update && sudo apt-get install -y clamav
+
+      - name: Update ClamAV signatures
+        run: sudo freshclam
+
+      - name: Scan image filesystem with ClamAV
+        env:
+          SCAN_IMAGE: gin-blog-api-scan:${{ matrix.variant }}
+        run: |
+          set -euo pipefail
+          scan_container="clamav-scan-${{ matrix.variant }}"
+          scan_dir="$(mktemp -d)"
+
+          docker create --name "${scan_container}" "${SCAN_IMAGE}" >/dev/null
+          docker export "${scan_container}" | tar -xf - -C "${scan_dir}"
+          docker rm "${scan_container}" >/dev/null
+
+          clamscan -r --infected --max-filesize=200M --max-scansize=1024M "${scan_dir}"
+          rm -rf "${scan_dir}"
 
       - name: Build and push ${{ matrix.variant }} image
         uses: docker/build-push-action@v6
