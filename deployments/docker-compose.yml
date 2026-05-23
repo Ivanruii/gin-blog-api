@@ -29,7 +29,7 @@ services:
     ports:
       - "9090:9090"
     volumes:
-      - ./deployments/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./deployments:/etc/prometheus:ro
       - prometheus-data:/prometheus
     networks:
       - blog-net
