@@ -29,18 +29,31 @@ services:
     ports:
       - "9090:9090"
     volumes:
-      - ./deployments:/etc/prometheus:ro
       - prometheus-data:/prometheus
     networks:
       - blog-net
     depends_on:
       - api
     restart: unless-stopped
-    command:
-      - "--config.file=/etc/prometheus/prometheus.yml"
-      - "--storage.tsdb.path=/prometheus"
-      - "--web.console.libraries=/usr/share/prometheus/console_libraries"
-      - "--web.console.templates=/usr/share/prometheus/consoles"
+    entrypoint: ["/bin/sh", "-ec"]
+    command: |
+      cat > /tmp/prometheus.yml <<'EOF'
+      global:
+        scrape_interval: 15s
+        evaluation_interval: 15s
+
+      scrape_configs:
+        - job_name: blog-api
+          metrics_path: /metrics
+          static_configs:
+            - targets: ["api:8080"]
+      EOF
+
+      exec /bin/prometheus \
+        --config.file=/tmp/prometheus.yml \
+        --storage.tsdb.path=/prometheus \
+        --web.console.libraries=/usr/share/prometheus/console_libraries \
+        --web.console.templates=/usr/share/prometheus/consoles
 
 networks:
   blog-net:
