@@ -11,7 +11,9 @@ help:
 	@echo "  make coverage - Ejecuta tests con coverage y genera HTML"
 	@echo "  make lint    - Ejecuta golangci-lint"
 	@echo "  make vuln    - Ejecuta govulncheck"
-	@echo "  make docker-build - Construye imagen Docker"
+	@echo "  make docker-build - Construye imagen Docker (Alpine)"
+	@echo "  make docker-build-debian - Construye imagen Docker (Debian)"
+	@echo "  make docker-build-all - Construye las dos imágenes Docker"
 	@echo "  make docker-run - Levanta API + Prometheus"
 	@echo "  make docker-stop - Detiene stack de Docker Compose"
 	@echo "  make tidy    - Sincroniza dependencias del módulo"
@@ -47,6 +49,13 @@ vuln:
 .PHONY: docker-build
 docker-build:
 	docker build -f deployments/Dockerfile -t gin-blog-api:latest .
+
+.PHONY: docker-build-debian
+docker-build-debian:
+	docker build -f deployments/Dockerfile.debian -t gin-blog-api:debian .
+
+.PHONY: docker-build-all
+docker-build-all: docker-build docker-build-debian
 
 .PHONY: docker-run
 docker-run:
