@@ -59,11 +59,11 @@ docker-build-all: docker-build docker-build-debian
 
 .PHONY: docker-run
 docker-run:
-	docker compose -f deployments/docker-compose.yml up --build
+	docker compose --project-directory . -f deployments/docker-compose.yml up --build
 
 .PHONY: docker-stop
 docker-stop:
-	docker compose -f deployments/docker-compose.yml down -v
+	docker compose --project-directory . -f deployments/docker-compose.yml down -v
 
 .PHONY: tidy
 tidy:

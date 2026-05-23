@@ -1,7 +1,7 @@
 services:
   api:
     build:
-      context: ..
+      context: .
       dockerfile: deployments/Dockerfile
     container_name: blog-api
     ports:
