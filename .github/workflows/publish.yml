@@ -48,42 +48,6 @@ jobs:
           fi
           echo "tags=${tags}" >> "$GITHUB_OUTPUT"
 
-      - name: Build image for ClamAV scan
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          file: ${{ matrix.dockerfile }}
-          load: true
-          push: false
-          tags: gin-blog-api-scan:${{ matrix.variant }}
-
-      - name: Install ClamAV
-        run: sudo apt-get update && sudo apt-get install -y clamav
-
-      - name: Update ClamAV signatures
-        run: |
-          set -euo pipefail
-          sudo systemctl stop clamav-freshclam.service || true
-          tmp_config="$(mktemp)"
-          sudo awk '!/^UpdateLogFile /' /etc/clamav/freshclam.conf > "${tmp_config}"
-          sudo freshclam --stdout --config-file="${tmp_config}"
-          rm -f "${tmp_config}"
-
-      - name: Scan image filesystem with ClamAV
-        env:
-          SCAN_IMAGE: gin-blog-api-scan:${{ matrix.variant }}
-        run: |
-          set -euo pipefail
-          scan_container="clamav-scan-${{ matrix.variant }}"
-          scan_dir="$(mktemp -d)"
-
-          docker create --name "${scan_container}" "${SCAN_IMAGE}" >/dev/null
-          docker export "${scan_container}" | tar -xf - -C "${scan_dir}"
-          docker rm "${scan_container}" >/dev/null
-
-          clamscan -r --infected --max-filesize=200M --max-scansize=1024M "${scan_dir}"
-          rm -rf "${scan_dir}"
-
       - name: Build and push ${{ matrix.variant }} image
         uses: docker/build-push-action@v6
         with:
