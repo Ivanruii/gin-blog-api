@@ -61,7 +61,13 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y clamav
 
       - name: Update ClamAV signatures
-        run: sudo freshclam
+        run: |
+          set -euo pipefail
+          sudo systemctl stop clamav-freshclam.service || true
+          tmp_config="$(mktemp)"
+          sudo awk '!/^UpdateLogFile /' /etc/clamav/freshclam.conf > "${tmp_config}"
+          sudo freshclam --stdout --config-file="${tmp_config}"
+          rm -f "${tmp_config}"
 
       - name: Scan image filesystem with ClamAV
         env:
