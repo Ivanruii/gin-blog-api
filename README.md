@@ -2,6 +2,8 @@
 
 Proyecto de API REST para un blog utilizando el framework Gin en Go. 
 
+Prueba.
+
 ## Curls rápidos para probar funcionalidad
 
 ```bash
