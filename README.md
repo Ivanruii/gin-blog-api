@@ -5,29 +5,27 @@ Proyecto de API REST para un blog utilizando el framework Gin en Go.
 ## Curls rápidos para probar funcionalidad
 
 ```bash
-BASE_URL="http://localhost:18080"
-
 # Health
-curl -s "$BASE_URL/api/v1/health"
+curl -s "http://g8dncrpzz6k4vwhhehg505l7.51.91.9.183.sslip.io:18080/api/v1/health"
 
 # Crear post
-curl -s -X POST "$BASE_URL/api/v1/posts" \
+curl -s -X POST "http://g8dncrpzz6k4vwhhehg505l7.51.91.9.183.sslip.io:18080/api/v1/posts" \
   -H "Content-Type: application/json" \
   -d '{"title":"Mi primer post","content":"Contenido de prueba con más de diez chars","author":"Ivan","published":false}'
 
 # Listar posts
-curl -s "$BASE_URL/api/v1/posts?page=1&limit=10"
+curl -s "http://g8dncrpzz6k4vwhhehg505l7.51.91.9.183.sslip.io:18080/api/v1/posts?page=1&limit=10"
 
 # Publicar post con ID 1
-curl -s -X PATCH "$BASE_URL/api/v1/posts/1/publish"
+curl -s -X PATCH "http://g8dncrpzz6k4vwhhehg505l7.51.91.9.183.sslip.io:18080/api/v1/posts/1/publish"
 
 # Crear comentario en post 1
-curl -s -X POST "$BASE_URL/api/v1/posts/1/comments" \
+curl -s -X POST "http://g8dncrpzz6k4vwhhehg505l7.51.91.9.183.sslip.io:18080/api/v1/posts/1/comments" \
   -H "Content-Type: application/json" \
   -d '{"author":"Ana","content":"Buen post!"}'
 
 # Listar comentarios del post 1
-curl -s "$BASE_URL/api/v1/posts/1/comments"
+curl -s "http://g8dncrpzz6k4vwhhehg505l7.51.91.9.183.sslip.io:18080/api/v1/posts/1/comments"
 ```
 
 ## Métricas Prometheus expuestas
