@@ -1,6 +1,8 @@
-FROM golang:1.25-alpine AS builder
+FROM golang:1.25-bookworm AS builder
 
-RUN apk add --no-cache build-base sqlite-dev
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends build-essential libsqlite3-dev && \
+    rm -rf /var/lib/apt/lists/*
 
 WORKDIR /src
 
@@ -12,13 +14,15 @@ COPY . .
 RUN CGO_ENABLED=1 GOOS=linux \
     go build -trimpath -ldflags="-s -w" -o /out/blog-api ./cmd/api
 
-FROM alpine:3.20
+FROM debian:bookworm-slim
 
 LABEL MAINTAINER="Ivanruii"
 
-RUN apk add --no-cache ca-certificates sqlite-libs tzdata wget
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends ca-certificates libsqlite3-0 tzdata wget && \
+    rm -rf /var/lib/apt/lists/*
 
-RUN addgroup -S app && adduser -S -G app app
+RUN groupadd --system app && useradd --system --gid app --create-home app
 
 WORKDIR /app
 
