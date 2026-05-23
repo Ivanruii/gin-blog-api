@@ -118,4 +118,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: gin-blog-api
-          path: bin/api
+          path: bin/blog-api
