@@ -9,8 +9,8 @@ RUN go mod download
 
 COPY . .
 
-RUN CGO_ENABLED=1 GOOS=linux \
-    go build -trimpath -ldflags="-s -w" -o /out/blog-api ./cmd/api
+RUN CGO_ENABLED=1 GOOS=linux GOMAXPROCS=2 \
+    go build -v -p=1 -trimpath -ldflags="-s -w" -o /out/blog-api ./cmd/api
 
 FROM alpine:3.20
 
