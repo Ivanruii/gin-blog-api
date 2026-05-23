@@ -1,0 +1,43 @@
+FROM golang:1.25-bookworm AS builder
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends build-essential libsqlite3-dev && \
+    rm -rf /var/lib/apt/lists/*
+
+WORKDIR /src
+
+COPY go.mod go.sum ./
+RUN go mod download
+
+COPY . .
+
+RUN CGO_ENABLED=1 GOOS=linux \
+    go build -trimpath -ldflags="-s -w" -o /out/blog-api ./cmd/api
+
+FROM debian:bookworm-slim
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends ca-certificates libsqlite3-0 tzdata wget && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN groupadd --system app && useradd --system --gid app --create-home app
+
+WORKDIR /app
+
+COPY --from=builder /out/blog-api /app/blog-api
+RUN mkdir -p /app/data && chown -R app:app /app
+
+USER app
+
+EXPOSE 8080
+
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+    CMD wget --spider -q http://localhost:8080/api/v1/health || exit 1
+
+ENV GIN_MODE=release
+ENV PORT=8080
+ENV DB_PATH=/app/data/blog.db
+
+VOLUME ["/app/data"]
+
+ENTRYPOINT ["/app/blog-api"]
