@@ -14,6 +14,8 @@ RUN CGO_ENABLED=1 GOOS=linux \
 
 FROM alpine:3.20
 
+LABEL MAINTAINER="Ivanruii"
+
 RUN apk add --no-cache ca-certificates sqlite-libs tzdata wget
 
 RUN addgroup -S app && adduser -S -G app app

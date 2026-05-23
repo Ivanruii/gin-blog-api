@@ -16,6 +16,8 @@ RUN CGO_ENABLED=1 GOOS=linux \
 
 FROM debian:bookworm-slim
 
+LABEL MAINTAINER="Ivanruii"
+
 RUN apt-get update && \
     apt-get install -y --no-install-recommends ca-certificates libsqlite3-0 tzdata wget && \
     rm -rf /var/lib/apt/lists/*
