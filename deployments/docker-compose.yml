@@ -5,7 +5,7 @@ services:
       dockerfile: deployments/Dockerfile
     container_name: blog-api
     ports:
-      - "8080:8080"
+      - "18080:8080"
     environment:
       - GIN_MODE=release
       - PORT=8080
@@ -17,7 +17,7 @@ services:
       - blog-net
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8080/api/v1/health"]
+      test: [ "CMD", "wget", "--spider", "-q", "http://localhost:8080/api/v1/health" ]
       interval: 30s
       timeout: 3s
       retries: 3
